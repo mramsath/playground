@@ -1,0 +1,67 @@
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties > ./zookeeper-logs &
+
+nohup bin/kafka-server-start.sh config/server.properties > ./kafka-logs &
+
+--topic--
+kafka-topics.sh --create --partitions 1 --replication-factor 1 --topic quickstart_events --bootstrap-server localhost:9092
+
+kafka-topics.sh --list --bootstrap-server localhost:9092
+
+
+
+---consumer---
+kafka-console-consumer.sh --topic quickstart_events --from-beginning --bootstrap-server localhost:9092
+
+
+---producer--
+kafka-console-producer.sh --topic quickstart-events --bootstrap-server localhost:9092
+
+
+--stopping--
+./bin/kafka-server-stop.sh
+
+./bin/zookeeper-server-stop.sh
+
+
+
+
+
+==============================
+==            Spark         ==
+==============================
+
+cd <spark_dir> (/opt/spark) 
+
+./sbin/start-master.sh 
+
+
+----start a slave service and run PySpark--
+
+./sbin/start-slave.sh spark://mramsath-LIFEBOOK-E548.hmg.local:7077
+This script is deprecated, use start-worker.sh
+starting org.apache.spark.deploy.worker.Worker, logging to /opt/spark-3.2.0-bin-hadoop3.2/logs/spark-mramsath-org.apache.spark.deploy.worker.Worker-1-mramsath-LIFEBOOK-E548.hmg.local.out
+
+
+./bin/pyspark --master spark://mramsath-LIFEBOOK-E548.hmg.local:7077
+
+
+from pyspark import SparkContext
+	
+dataFile = "./sbin/start-master.sh"	
+sc = SparkContext("spark://mramsath-LIFEBOOK-E548.hmg.local:7077", "Simple App")	
+textRdd = sc.textFile(dataFile)	
+print "Number of lines: ", textRdd.count()	
+print "Number of lines with 8080: ", textRdd.filter(lambda x : '8080' in x).count()
+sc.stop()
+
+
+--stop slave---
+./sbin/stop-slave.sh
+
+--stop master---
+./sbin/stop-master.sh
+
+
+
+
+
